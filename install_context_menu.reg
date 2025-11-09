@@ -1,0 +1,17 @@
+Windows Registry Editor Version 5.00
+
+; Add "Convert to JPG" to HEIC file context menu
+[HKEY_CLASSES_ROOT\SystemFileAssociations\.heic\shell\ConvertToJPG]
+@="Convert to JPG"
+"Icon"="imageres.dll,-122"
+
+[HKEY_CLASSES_ROOT\SystemFileAssociations\.heic\shell\ConvertToJPG\command]
+@="\"C:\\Users\\blahn\\OneDrive\\Documents\\GitHub\\HEIC-to-JPG\\convert_heic.bat\" \"%1\""
+
+; Also add for .heif extension
+[HKEY_CLASSES_ROOT\SystemFileAssociations\.heif\shell\ConvertToJPG]
+@="Convert to JPG"
+"Icon"="imageres.dll,-122"
+
+[HKEY_CLASSES_ROOT\SystemFileAssociations\.heif\shell\ConvertToJPG\command]
+@="\"C:\\Users\\blahn\\OneDrive\\Documents\\GitHub\\HEIC-to-JPG\\convert_heic.bat\" \"%1\""

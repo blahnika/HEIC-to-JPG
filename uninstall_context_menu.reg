@@ -1,0 +1,7 @@
+Windows Registry Editor Version 5.00
+
+; Remove "Convert to JPG" from HEIC file context menu
+[-HKEY_CLASSES_ROOT\SystemFileAssociations\.heic\shell\ConvertToJPG]
+
+; Remove from .heif extension
+[-HKEY_CLASSES_ROOT\SystemFileAssociations\.heif\shell\ConvertToJPG]
