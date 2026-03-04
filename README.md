@@ -36,12 +36,16 @@ To add "Convert to JPG" to your right-click menu for HEIC files:
 
 Now you can right-click any HEIC file and select "Convert to JPG"!
 
+> **Windows 11 note:** The registry file also restores the classic context menu so
+> "Convert to JPG" appears **directly** when you right-click — no need to click
+> "Show more options" first. See the [Windows 11 section](#windows-11-classic-context-menu)
+> in Troubleshooting for details.
+
 ## Usage
 
 ### Method 1: Right-Click Context Menu (After Installation)
 
 1. Right-click on any `.heic` or `.heif` file
-   1. May need to use "Show More" to get to this. 
 2. Select "Convert to JPG"
 3. The converted file will appear in the same folder with a `.jpg` extension
 
@@ -89,6 +93,22 @@ The converter:
 4. Preserves the original filename, just changes the extension
 
 ## Troubleshooting
+
+**Windows 11 classic context menu:**
+
+The `install_context_menu.reg` file automatically restores the classic Windows context
+menu so that "Convert to JPG" appears at the top level of the right-click menu. This
+works by adding a registry key that tells Windows Explorer to use the legacy menu
+renderer instead of the Windows 11 modern one.
+
+If you want to revert to the Windows 11 modern context menu (and accept that "Convert
+to JPG" will be under "Show more options"), double-click `uninstall_context_menu.reg`
+— it removes both the converter entry and the classic menu setting.
+
+To manually undo just the classic menu change, delete this registry key:
+```
+HKEY_CURRENT_USER\Software\Classes\CLSID\{86ca1aa0-34aa-4e8b-a509-50c905bae2a2}
+```
 
 **"Module not found" error:**
 
