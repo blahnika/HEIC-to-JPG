@@ -15,3 +15,8 @@ Windows Registry Editor Version 5.00
 
 [HKEY_CLASSES_ROOT\SystemFileAssociations\.heif\shell\ConvertToJPG\command]
 @="\"C:\\Users\\blahn\\OneDrive\\Documents\\GitHub\\HEIC-to-JPG\\convert_heic.bat\" \"%1\""
+
+; Restore classic context menu on Windows 11 so "Convert to JPG" appears
+; at the top level without needing "Show more options"
+[HKEY_CURRENT_USER\Software\Classes\CLSID\{86ca1aa0-34aa-4e8b-a509-50c905bae2a2}\InprocServer32]
+@=""
