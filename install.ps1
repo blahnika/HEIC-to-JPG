@@ -28,13 +28,16 @@ $repoRoot = $PSScriptRoot
 
 function Find-SDKTool {
     param([string]$ToolName)
-    $sdkRoot = (Get-ItemProperty `
+    $kitsReg = Get-ItemProperty `
         'HKLM:\SOFTWARE\Microsoft\Windows Kits\Installed Roots' `
-        -ErrorAction SilentlyContinue).'KitsRoot10'
+        -ErrorAction SilentlyContinue
+    $sdkRoot = if ($kitsReg -and ($kitsReg.PSObject.Properties['KitsRoot10'])) { $kitsReg.KitsRoot10 } else { $null }
     if (-not $sdkRoot) { return $null }
-    # Search all installed SDK versions, newest first
-    $candidates = Get-ChildItem "$sdkRoot\bin" -Filter $ToolName -Recurse -ErrorAction SilentlyContinue |
-        Where-Object { $_.FullName -match 'x64' } |
+    # Search bin\ (versioned SDK layout) and App Certification Kit\ (flat layout)
+    $searchRoots = @("$sdkRoot\bin", "$sdkRoot\App Certification Kit")
+    $candidates = $searchRoots | ForEach-Object {
+        Get-ChildItem $_ -Filter $ToolName -Recurse -ErrorAction SilentlyContinue
+    } | Where-Object { $_.FullName -notmatch 'arm' -and ($_.FullName -match 'x64' -or $_.DirectoryName -notmatch '\\(x86|arm)') } |
         Sort-Object FullName -Descending
     return $candidates | Select-Object -First 1 -ExpandProperty FullName
 }
@@ -141,6 +144,19 @@ if (Test-Path $msixPath) { Remove-Item $msixPath -Force }
 Write-Host "  Packing sparse package..."
 & $makeappx pack /d $sparseDir /p $msixPath /nv 2>&1 | Out-Null
 if ($LASTEXITCODE -ne 0) { throw "makeappx failed." }
+
+# The 2013-era makeappx compresses AppxManifest.xml, which violates the MSIX
+# spec (metadata files must be stored uncompressed).  Repack to fix this.
+# Python (Windows Store) can't write to OneDrive paths, so stage via %TEMP%.
+Write-Host "  Fixing MSIX compression (stored metadata)..."
+$repackScript = Join-Path $repoRoot 'repack_msix.py'
+$msixTempIn  = Join-Path $env:TEMP 'HeicConverter_in.msix'
+$msixTempOut = Join-Path $env:TEMP 'HeicConverter_out.msix'
+Copy-Item $msixPath $msixTempIn -Force
+& python $repackScript $msixTempIn $msixTempOut
+if ($LASTEXITCODE -ne 0) { throw "repack_msix.py failed." }
+Copy-Item $msixTempOut $msixPath -Force
+Remove-Item $msixTempIn, $msixTempOut -Force -ErrorAction SilentlyContinue
 
 Write-Host "  Signing with certificate..."
 & $signtool sign /fd SHA256 /sha1 $cert.Thumbprint $msixPath 2>&1 | Out-Null
