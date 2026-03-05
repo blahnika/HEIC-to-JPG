@@ -1,15 +1,15 @@
 # HEIC to JPG Converter
 
-A simple Python-based tool to convert HEIC/HEIF images to JPG format with Windows context menu integration.
+A Python-based tool to convert HEIC/HEIF images to JPG format with Windows context menu integration.
 
 ## Features
 
-- 🖼️ Convert HEIC/HEIF files to high-quality JPG
-- 📁 Batch convert multiple files at once
-- 🖱️ Right-click context menu integration
-- 🎨 Preserves image quality (95% quality default)
-- 🔄 Handles transparency properly (converts to white background)
-- ⚡ Fast and lightweight
+- Convert HEIC/HEIF files to high-quality JPG
+- Batch convert multiple files at once
+- Right-click context menu integration (Windows 10 and 11)
+- Preserves image quality (95% quality default)
+- Handles transparency properly (converts to white background)
+- Fast and lightweight
 
 ## Installation
 
@@ -26,20 +26,33 @@ This will install:
 - Pillow (image processing)
 - pillow-heif (HEIC format support)
 
-### 2. Add Right-Click Context Menu (Optional)
+### 2. Add Right-Click Context Menu
 
-To add "Convert to JPG" to your right-click menu for HEIC files:
+#### Windows 11
 
-1. Double-click `install_context_menu.reg`
-2. Click "Yes" when Windows asks for permission
-3. Click "OK" on the confirmation dialog
+Windows 11's modern context menu requires a signed MSIX sparse package rather than a
+simple registry entry. Run the installer script in PowerShell from the repo directory:
 
-Now you can right-click any HEIC file and select "Convert to JPG"!
+```powershell
+.\install.ps1
+```
 
-> **Windows 11 note:** The registry file also restores the classic context menu so
-> "Convert to JPG" appears **directly** when you right-click — no need to click
-> "Show more options" first. See the [Windows 11 section](#windows-11-classic-context-menu)
-> in Troubleshooting for details.
+The script will:
+1. Build `launcher.exe` from source (requires [.NET 8 SDK](https://dotnet.microsoft.com/download/dotnet/8.0))
+2. Create and trust a self-signed certificate (current user only, no admin needed)
+3. Package and register the sparse MSIX so "Convert to JPG" appears directly in
+   the first-level right-click menu for `.heic` and `.heif` files
+
+**Prerequisites for `install.ps1`:**
+- [.NET 8 SDK](https://dotnet.microsoft.com/download/dotnet/8.0)
+- Windows SDK (`makeappx.exe` + `signtool.exe`) — install via
+  [Visual Studio Installer](https://visualstudio.microsoft.com/) > Individual Components > "Windows SDK",
+  or the [standalone Windows SDK](https://developer.microsoft.com/windows/downloads/windows-sdk/)
+
+#### Windows 10
+
+Double-click `install_context_menu.reg`, then click Yes and OK.
+"Convert to JPG" will appear under "Show more options" when right-clicking a HEIC file.
 
 ## Usage
 
@@ -77,11 +90,15 @@ python heic_converter.py C:\Photos\MyFolder
 
 ## Uninstallation
 
-To remove the context menu integration:
+#### Windows 11
 
-1. Double-click `uninstall_context_menu.reg`
-2. Click "Yes" when Windows asks for permission
-3. Click "OK" on the confirmation dialog
+```powershell
+.\uninstall.ps1
+```
+
+#### Windows 10
+
+Double-click `uninstall_context_menu.reg`, then click Yes and OK.
 
 ## How It Works
 
@@ -92,50 +109,62 @@ The converter:
 3. Saves as high-quality JPG (95% quality, optimized)
 4. Preserves the original filename, just changes the extension
 
+On Windows 11, a thin `launcher.exe` shim receives the file path from the OS and
+calls `heic_converter.py`. This is required because the MSIX sparse package manifest
+needs a `.exe` as its entry point.
+
 ## Troubleshooting
 
-**Windows 11 classic context menu:**
+**"Convert to JPG" appears under "Show more options" instead of the top-level menu (Windows 11):**
 
-The `install_context_menu.reg` file automatically restores the classic Windows context
-menu so that "Convert to JPG" appears at the top level of the right-click menu. This
-works by adding a registry key that tells Windows Explorer to use the legacy menu
-renderer instead of the Windows 11 modern one.
+The `.reg` file method only works for the classic Windows 10 context menu. For the
+Windows 11 first-level menu, use `install.ps1` — it registers a sparse MSIX package
+which is the mechanism Windows 11 uses to surface custom context menu entries.
 
-If you want to revert to the Windows 11 modern context menu (and accept that "Convert
-to JPG" will be under "Show more options"), double-click `uninstall_context_menu.reg`
-— it removes both the converter entry and the classic menu setting.
+**`install.ps1` fails with "makeappx.exe not found":**
 
-To manually undo just the classic menu change, delete this registry key:
-```
-HKEY_CURRENT_USER\Software\Classes\CLSID\{86ca1aa0-34aa-4e8b-a509-50c905bae2a2}
-```
+Install the Windows SDK. The quickest path is through Visual Studio Installer:
+`Individual Components` > search "Windows SDK" > select the latest version.
 
-**"Module not found" error:**
+**`install.ps1` fails with "dotnet not found":**
+
+Install the [.NET 8 SDK](https://dotnet.microsoft.com/download/dotnet/8.0) and re-run.
+
+**"Module not found" error when converting:**
 
 - Make sure you ran `pip install -r requirements.txt`
 - Try: `pip install Pillow pillow-heif`
-
-**Context menu doesn't appear:**
-
-- Make sure you ran `install_context_menu.reg` as administrator
-- Check that the path in the .reg file matches your installation location
-- Try restarting Windows Explorer (Task Manager → Windows Explorer → Restart)
 
 **Python not found:**
 
 - Make sure Python is installed and added to your PATH
 - Try running: `python --version` in Command Prompt
 
+**Context menu doesn't appear after install.ps1:**
+
+- Try restarting Windows Explorer (Task Manager → Windows Explorer → Restart)
+- Make sure you're running PowerShell from the repo root directory
+- Check that the script completed without errors
+
 ## File Structure
 
 ```
 HEIC-to-JPG/
-├── heic_converter.py          # Main converter script
-├── convert_heic.bat           # Batch launcher for context menu
-├── install_context_menu.reg   # Registry file to add context menu
-├── uninstall_context_menu.reg # Registry file to remove context menu
-├── requirements.txt           # Python dependencies
-└── README.md                  # This file
+├── heic_converter.py              # Main converter script
+├── heic_converter_batch.py        # Multi-select batch wrapper
+├── convert_heic.bat               # Batch launcher (drag-and-drop / Win10 menu)
+├── launcher.exe                   # Thin shim for Win11 sparse package (pre-built)
+├── sparse-package/
+│   ├── AppxManifest.xml           # MSIX sparse package manifest
+│   └── Assets/                    # App icons
+├── src/
+│   └── Launcher/                  # Source for launcher.exe
+├── install.ps1                    # Windows 11 installer (sparse package)
+├── uninstall.ps1                  # Windows 11 uninstaller
+├── install_context_menu.reg       # Windows 10 registry installer
+├── uninstall_context_menu.reg     # Windows 10 registry uninstaller
+├── requirements.txt               # Python dependencies
+└── README.md                      # This file
 ```
 
 ## Requirements
@@ -144,6 +173,7 @@ HEIC-to-JPG/
 - Windows 10/11
 - Pillow >= 10.0.0
 - pillow-heif >= 0.13.0
+- **Windows 11 context menu only:** .NET 8 SDK + Windows SDK
 
 ## License
 
@@ -154,4 +184,4 @@ Free to use and modify as needed!
 - Original HEIC files are not deleted or modified
 - JPG files are saved with the same filename in the same location
 - If a JPG file already exists, it will be overwritten
-- Quality setting can be adjusted in the `heic_converter.py` file (line 15)
+- Quality setting can be adjusted in `heic_converter.py` (line 15)
