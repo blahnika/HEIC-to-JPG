@@ -49,16 +49,12 @@ The script will:
   [Visual Studio Installer](https://visualstudio.microsoft.com/) > Individual Components > "Windows SDK",
   or the [standalone Windows SDK](https://developer.microsoft.com/windows/downloads/windows-sdk/)
 
-#### Windows 10
-
-Double-click `install_context_menu.reg`, then click Yes and OK.
-"Convert to JPG" will appear under "Show more options" when right-clicking a HEIC file.
-
 ## Usage
 
 ### Method 1: Right-Click Context Menu (After Installation)
 
 1. Right-click on any `.heic` or `.heif` file
+   1. May need to use "Show More" to get to this. 
 2. Select "Convert to JPG"
 3. The converted file will appear in the same folder with a `.jpg` extension
 
@@ -115,18 +111,7 @@ needs a `.exe` as its entry point.
 
 ## Troubleshooting
 
-**"Convert to JPG" appears under "Show more options" instead of the top-level menu (Windows 11):**
-
-The `.reg` file method only works for the classic Windows 10 context menu. For the
-Windows 11 first-level menu, use `install.ps1` — it registers a sparse MSIX package
-which is the mechanism Windows 11 uses to surface custom context menu entries.
-
-**`install.ps1` fails with "makeappx.exe not found":**
-
-Install the Windows SDK. The quickest path is through Visual Studio Installer:
-`Individual Components` > search "Windows SDK" > select the latest version.
-
-**`install.ps1` fails with "dotnet not found":**
+**"Module not found" error:**
 
 Install the [.NET 8 SDK](https://dotnet.microsoft.com/download/dotnet/8.0) and re-run.
 

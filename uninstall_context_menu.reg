@@ -5,6 +5,3 @@ Windows Registry Editor Version 5.00
 
 ; Remove from .heif extension
 [-HKEY_CLASSES_ROOT\SystemFileAssociations\.heif\shell\ConvertToJPG]
-
-; Re-enable Windows 11 modern context menu
-[-HKEY_CURRENT_USER\Software\Classes\CLSID\{86ca1aa0-34aa-4e8b-a509-50c905bae2a2}]
