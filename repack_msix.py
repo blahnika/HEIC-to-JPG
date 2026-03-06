@@ -159,15 +159,17 @@ def repack(input_path: str, output_path: str) -> None:
     content_types_bytes = build_content_types(payload_files)
 
     # ── Write the new ZIP with ZIP_STORED for all entries ───────────────────
+    # OPC/MSIX requires [Content_Types].xml to be the first entry in the ZIP.
+    # signtool rejects the package with "file format not recognized" otherwise.
     with zipfile.ZipFile(output_path, "w", compression=zipfile.ZIP_STORED) as zout:
+        ct_info = zipfile.ZipInfo("[Content_Types].xml")
+        ct_info.compress_type = zipfile.ZIP_STORED
+        zout.writestr(ct_info, content_types_bytes)
+
         for zip_path, data in payload_files:
             info = zipfile.ZipInfo(zip_path)
             info.compress_type = zipfile.ZIP_STORED
             zout.writestr(info, data)
-
-        ct_info = zipfile.ZipInfo("[Content_Types].xml")
-        ct_info.compress_type = zipfile.ZIP_STORED
-        zout.writestr(ct_info, content_types_bytes)
 
         bm_info = zipfile.ZipInfo("AppxBlockMap.xml")
         bm_info.compress_type = zipfile.ZIP_STORED

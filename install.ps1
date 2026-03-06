@@ -24,7 +24,7 @@ $ErrorActionPreference = 'Stop'
 
 $repoRoot = $PSScriptRoot
 
-# ── Helper ────────────────────────────────────────────────────────────────────
+# -- Helper --------------------------------------------------------------------
 
 function Find-SDKTool {
     param([string]$ToolName)
@@ -42,7 +42,7 @@ function Find-SDKTool {
     return $candidates | Select-Object -First 1 -ExpandProperty FullName
 }
 
-# ── Step 1: Build launcher.exe ─────────────────────────────────────────────
+# -- Step 1: Build launcher.exe -----------------------------------------------
 
 Write-Host ""
 Write-Host "=== Step 1/5: Building launcher.exe ===" -ForegroundColor Cyan
@@ -72,7 +72,7 @@ if (Test-Path $launcherExe) {
     Write-Host "  launcher.exe built successfully." -ForegroundColor Green
 }
 
-# ── Step 2: Create self-signed certificate ────────────────────────────────
+# -- Step 2: Create self-signed certificate -----------------------------------
 
 Write-Host ""
 Write-Host "=== Step 2/5: Creating self-signed certificate ===" -ForegroundColor Cyan
@@ -97,7 +97,7 @@ if ($existingCert -and $existingCert.NotAfter -gt (Get-Date)) {
     Write-Host "  Certificate created (thumbprint: $($cert.Thumbprint))" -ForegroundColor Green
 }
 
-# ── Step 3: Trust the certificate (current user, no admin needed) ─────────
+# -- Step 3: Trust the certificate (current user, no admin needed) ------------
 
 Write-Host ""
 Write-Host "=== Step 3/5: Trusting the certificate ===" -ForegroundColor Cyan
@@ -114,7 +114,7 @@ if ($alreadyTrusted) {
 }
 Remove-Item $certFile -Force -ErrorAction SilentlyContinue
 
-# ── Step 4: Build and sign the MSIX sparse package ───────────────────────
+# -- Step 4: Build and sign the MSIX sparse package ---------------------------
 
 Write-Host ""
 Write-Host "=== Step 4/5: Building and signing sparse MSIX package ===" -ForegroundColor Cyan
@@ -164,7 +164,7 @@ if ($LASTEXITCODE -ne 0) { throw "signtool failed." }
 
 Write-Host "  Package built and signed." -ForegroundColor Green
 
-# ── Step 5: Register the sparse package ──────────────────────────────────
+# -- Step 5: Register the sparse package --------------------------------------
 
 Write-Host ""
 Write-Host "=== Step 5/5: Registering sparse package ===" -ForegroundColor Cyan
@@ -184,7 +184,7 @@ Write-Host " Installation complete!" -ForegroundColor Green
 Write-Host "================================================" -ForegroundColor Green
 Write-Host ""
 Write-Host " Right-click any .heic or .heif file and select"
-Write-Host " 'Convert to JPG' — it will appear directly in"
+Write-Host " 'Convert to JPG' - it will appear directly in"
 Write-Host " the Windows 11 context menu."
 Write-Host ""
 Write-Host " To uninstall, run: .\uninstall.ps1"
